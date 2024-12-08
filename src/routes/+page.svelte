@@ -191,7 +191,7 @@
 				</div>
 			</div>
 
-			<div class="space-y-4 ms:px-5 px-10">
+			<div class="space-y-4 md:px-2 lg:px-10">
 				<div class="space-y-4">
 					<div class="relative">
 						<div class="absolute inset-0 flex items-center">
