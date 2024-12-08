@@ -23,10 +23,7 @@
 			"type": "image/png"
 		}
 	],
-	"permissions": [
-		"background",
-		"audio-capture"
-	],
+	"permissions": ["background", "audio-capture"],
 	"categories": ["entertainment", "media"],
 	"related_applications": [],
 	"prefer_related_applications": false,
@@ -44,5 +41,19 @@
 			]
 		}
 	],
-	"screenshots": []
+	"screenshots": [
+		{
+			"src": "/screenshots/desktop.png",
+			"sizes": "1903x920",
+			"type": "image/png",
+			"form_factor": "wide",
+			"label": "Desktop view of Zimmer"
+		},
+		{
+			"src": "/screenshots/mobile.png",
+			"sizes": "372x665",
+			"type": "image/png",
+			"label": "Mobile view of Zimmer"
+		}
+	]
 }
