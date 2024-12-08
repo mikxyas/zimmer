@@ -10,15 +10,16 @@
 
 	function checkStandaloneMode() {
 		// Multiple methods to detect standalone mode
-		const isStandalone = 
+		const isStandalone =
 			window.matchMedia('(display-mode: standalone)').matches ||
+			// @ts-ignore
 			window.navigator.standalone === true ||
 			(window as any).standalone === true;
 
 		if (isStandalone) {
 			document.body.classList.add('standalone');
 			document.documentElement.classList.add('standalone');
-			
+
 			// Adjust viewport for standalone mode
 			const metaViewport = document.querySelector('meta[name="viewport"]');
 			if (!metaViewport) {
@@ -28,16 +29,16 @@
 				document.head.appendChild(viewport);
 			}
 
-			console.log('Standalone mode detected and configured');
+			// console.log('Standalone mode detected and configured');
 		} else {
-			console.log('Not in standalone mode');
+			// console.log('Not in standalone mode');
 		}
 	}
 
 	onMount(() => {
 		// Detect standalone mode on mount and when display mode changes
 		checkStandaloneMode();
-		
+
 		// Listen for display mode changes
 		const mediaQuery = window.matchMedia('(display-mode: standalone)');
 		mediaQuery.addEventListener('change', checkStandaloneMode);
@@ -54,7 +55,7 @@
 			navigator.serviceWorker
 				.register('/service-worker.js')
 				.then((registration) => {
-					console.log('Service Worker registered with scope:', registration.scope);
+					// console.log('Service Worker registered with scope:', registration.scope);
 				})
 				.catch((error) => {
 					console.error('Service Worker registration failed:', error);
@@ -65,7 +66,7 @@
 				e.preventDefault();
 				installPrompt = e;
 				showInstallButton = true;
-				console.log('PWA install prompt is available');
+				// console.log('PWA install prompt is available');
 			});
 
 			// Hide install button if app is installed
@@ -73,7 +74,7 @@
 				showInstallButton = false;
 				isAppInstalled = true;
 				installPrompt = null;
-				
+
 				// Recheck standalone mode after installation
 				checkStandaloneMode();
 			});
@@ -91,11 +92,11 @@
 			installPrompt.prompt();
 			installPrompt.userChoice.then((choiceResult: any) => {
 				if (choiceResult.outcome === 'accepted') {
-					console.log('User accepted the PWA installation');
+					// console.log('User accepted the PWA installation');
 					showInstallButton = false;
 					isAppInstalled = true;
 				} else {
-					console.log('User dismissed the PWA installation');
+					// console.log('User dismissed the PWA installation');
 				}
 				installPrompt = null;
 			});
@@ -110,7 +111,10 @@
 	<meta name="mobile-web-app-capable" content="yes" />
 	<meta name="apple-mobile-web-app-capable" content="yes" />
 	<meta name="apple-mobile-web-app-status-bar-style" content="black" />
-	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+	<meta
+		name="viewport"
+		content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+	/>
 </svelte:head>
 
 {#if showInstallButton && !isAppInstalled}

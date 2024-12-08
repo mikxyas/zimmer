@@ -38,6 +38,6 @@ export function extractVideoId(url) {
 
 export function isValidYoutubeUrl(url) {
 	const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
-	console.log(youtubeRegex.test(url));
+	// console.log(youtubeRegex.test(url));
 	return youtubeRegex.test(url);
 }

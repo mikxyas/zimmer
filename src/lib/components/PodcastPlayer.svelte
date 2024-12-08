@@ -58,13 +58,13 @@
 	async function initPlayer() {
 		try {
 			await loadYouTubeAPI();
-			console.log('YouTube API loaded');
+			// console.log('YouTube API loaded');
 
 			if (player) {
 				player.destroy();
 			}
 
-			console.log('Creating player with videoId:', videoId);
+			// console.log('Creating player with videoId:', videoId);
 			player = new window.YT.Player('youtube-player', {
 				videoId,
 				playerVars: {
@@ -92,7 +92,7 @@
 	}
 
 	function onPlayerReady(event: any) {
-		console.log('Player ready');
+		// console.log('Player ready');
 		try {
 			if (initialTime > 0) {
 				event.target.seekTo(initialTime, true);
@@ -151,7 +151,7 @@
 
 	function saveCurrentTime(time: any) {
 		if (!isNaN(time) && time > 0) {
-			console.log('Time saved at:', time);
+			// console.log('Time saved at:', time);
 			localStorage.setItem('zimmer_current_time', time.toString());
 		}
 	}
@@ -173,7 +173,7 @@
 		if (videoInput && isValidYoutubeUrl(videoInput)) {
 			// Save the new URL to localStorage
 			localStorage.setItem('zimmer_podcast_url', videoInput);
-			console.log('Podcast URL saved:', videoInput);
+			// console.log('Podcast URL saved:', videoInput);
 			// Update the URL and reset video
 			url = videoInput;
 			videoId = extractVideoId(videoInput);
@@ -292,7 +292,7 @@
 			<div class="video-wrapper relative bg-black/5 rounded-lg overflow-hidden">
 				{#if isLoading}
 					<div class="loading-overlay flex items-center justify-center">
-						<div class="loading-spinner" />
+						<div class="loading-spinner"></div>
 					</div>
 				{/if}
 				<div id="youtube-player" class="aspect-video video w-full"></div>
