@@ -1,38 +1,44 @@
-# sv
+# Zimmer 🎧
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Zimmer is an elegant web application that enhances your podcast listening experience by allowing you to play ambient background music alongside your favorite podcasts. Perfect for creating the right atmosphere while listening to your favorite content.
 
-## Creating a project
+## Features
 
-If you're seeing this, you've probably already done this step. Congrats!
+- 💾 Auto-save functionality for your last session
+- 🎨 Clean, modern interface
+- 📱 Responsive design for all devices
 
-```bash
-# create a new project in the current directory
-npx sv create
+## Screenshots
 
-# create a new project in my-app
-npx sv create my-app
-```
+### Main Interface
 
-## Developing
+![Main Interface](screenshots/screenshot1.png)
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+### Player Controls
 
-```bash
-npm run dev
+![Player Controls](screenshots/screenshot2.png)
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+## Technology Stack
 
-## Building
+- Built with SvelteKit
+- Styled with Tailwind CSS
+- Modern UI components with Shadcn-Svelte
 
-To create a production version of your app:
+## Getting Started
 
-```bash
-npm run build
-```
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   bun install
+   ```
+3. Run the development server:
+   ```bash
+   bun dev
+   ```
 
-You can preview the production build with `npm run preview`.
+## Usage
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+1. Enter the YouTube URL of your podcast
+2. Choose your preferred background music
+3. Adjust the volume levels to your liking
+4. Enjoy your enhanced listening experience!
