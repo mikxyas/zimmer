@@ -1,9 +1,9 @@
 module.exports = {
-  globDirectory: 'build/',
+  globDirectory: '.svelte-kit/output/client/',
   globPatterns: [
     '**/*.{html,json,js,css,svg,png,ico,txt}'
   ],
-  swDest: 'build/service-worker.js',
+  swDest: '.svelte-kit/output/client/service-worker.js',
   clientsClaim: true,
   skipWaiting: true,
   // Don't cache Google Fonts and other dynamic resources
