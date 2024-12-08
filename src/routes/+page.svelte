@@ -17,11 +17,10 @@
 	let startPlayback: boolean = false;
 	let selectedBackgroundMusic: { title: string; url: string } | null = null;
 	let currentTime: number = 0;
-	let isInitializing: boolean = false;
+	let isInitializing: boolean = true;
 
 	// Load saved state on mount
 	onMount(() => {
-		isInitializing = true;
 		const savedPodcastUrl = localStorage.getItem('zimmer_podcast_url');
 		const savedBgUrl = localStorage.getItem('zimmer_bg_url');
 		const savedTime = localStorage.getItem('zimmer_current_time');
@@ -139,9 +138,10 @@
 
 <div class="container mx-auto px-4 py-8 max-w-md space-y-6">
 	{#if isInitializing}
-		<div class="flex flex-col items-center justify-center space-y-4 p-8">
-			<div class="w-12 h-12 border-4 border-t-primary animate-spin rounded-full" />
-			<p class="text-lg font-medium">Loading your session...</p>
+		<div class="fixed inset-0 bg-background flex flex-col items-center justify-center space-y-6">
+			<h1 class="text-2xl font-bold">Zimmer</h1>
+			<!-- <div class="w-16 h-16 border-4 border-t-primary animate-spin rounded-full"></div> -->
+			<!-- <p class="text-xl font-medium">Loading your session...</p> -->
 		</div>
 	{:else if showForm}
 		<div class="text-center space-y-4">

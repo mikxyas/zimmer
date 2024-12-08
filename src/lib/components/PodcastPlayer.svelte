@@ -168,6 +168,27 @@
 			seekInProgress = false;
 		}, 1000);
 	}
+
+	async function handleUrlChange() {
+		if (videoInput && isValidYoutubeUrl(videoInput)) {
+			// Save the new URL to localStorage
+			localStorage.setItem('zimmer_podcast_url', videoInput);
+			console.log('Podcast URL saved:', videoInput);
+			// Update the URL and reset video
+			url = videoInput;
+			videoId = extractVideoId(videoInput);
+			currentTime = 0;
+			lastSavedTime = 0;
+			localStorage.setItem('zimmer_current_time', '0');
+
+			// Reinitialize the player with the new URL
+			await initPlayer();
+			videoInput = '';
+		} else {
+			dispatch('error', { type: 'invalid_url', error: 'Invalid YouTube URL' });
+		}
+	}
+
 	// @ts-ignore
 	onMount(async () => {
 		isLoading = true;
@@ -256,15 +277,15 @@
 <div class="video-container">
 	<div class="space-y-4">
 		<div class="video-input-wrapper">
-			<div class="video-input-group">
+			<form class="flex gap-2">
 				<Input
 					type="text"
 					bind:value={videoInput}
 					placeholder="Enter YouTube URL"
 					class="flex-grow"
 				/>
-				<Button onclick={changeVideo} variant="default" size="sm">Change Podcast</Button>
-			</div>
+				<Button onclick={handleUrlChange} variant="default" size="sm">Change Podcast</Button>
+			</form>
 		</div>
 
 		{#if videoId}

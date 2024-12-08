@@ -61,7 +61,8 @@
 		}
 	];
 
-	let selectedMusic: BackgroundMusic | null = backgroundMusicOptions.find((option) => option.url === url) || null;
+	let selectedMusic: BackgroundMusic | null =
+		backgroundMusicOptions.find((option) => option.url === url) || null;
 
 	$: {
 		if (url && isValidYoutubeUrl(url)) {
@@ -105,6 +106,7 @@
 
 	function changeVideo(): void {
 		if (isValidYoutubeUrl(videoInput)) {
+			localStorage.setItem('zimmer_bg_url', videoInput);
 			url = videoInput;
 			videoInput = '';
 		} else {
@@ -125,18 +127,22 @@
 	function toggleLowQuality(): void {
 		videoQuality = videoQuality === 'tiny' ? 'default' : 'tiny';
 	}
+
+	// Listen for changes in localStorage
 </script>
 
 <div class="video-container">
 	<div class=" mb-4">
 		<div class="flex gap-2">
-			<Input
-				type="text"
-				bind:value={videoInput}
-				placeholder="Enter YouTube URL"
-				class="flex-grow"
-			/>
-			<Button onclick={changeVideo} variant="default" size="sm">Change Background</Button>
+			<form class="flex gap-2 w-full">
+				<Input
+					type="text"
+					bind:value={videoInput}
+					placeholder="Enter YouTube URL"
+					class="flex-grow"
+				/>
+				<Button onclick={changeVideo} variant="default" size="sm">Change Background</Button>
+			</form>
 		</div>
 	</div>
 	{#if videoId}
@@ -198,6 +204,7 @@
 					onclick={() => {
 						selectedMusic = option;
 						url = option.url;
+						localStorage.setItem('zimmer_bg_url', option.url);
 					}}
 				>
 					<h3 class="font-medium">{option.title}</h3>
