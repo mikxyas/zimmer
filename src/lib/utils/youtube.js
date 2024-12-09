@@ -41,3 +41,20 @@ export function isValidYoutubeUrl(url) {
 	// console.log(youtubeRegex.test(url));
 	return youtubeRegex.test(url);
 }
+
+export function extractPlaylistId(url) {
+	const match = url.match(/[&?]list=([^&]+)/i);
+	return match ? match[1] : '';
+}
+
+export function isPlaylist(url) {
+	return !!extractPlaylistId(url);
+}
+
+export function parseYouTubeUrl(url) {
+	return {
+		videoId: extractVideoId(url),
+		playlistId: extractPlaylistId(url),
+		isPlaylist: isPlaylist(url)
+	};
+}

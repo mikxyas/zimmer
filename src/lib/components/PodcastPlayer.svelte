@@ -5,6 +5,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Slider } from '$lib/components/ui/slider';
 	import { Label } from '$lib/components/ui/label';
+	import { Pause, Play } from 'lucide-svelte';
 
 	// Props with type definitions
 	export let url: string = '';
@@ -18,8 +19,6 @@
 		pause: { type: string };
 	}>();
 
-	// Component state with type definitions
-	let iframeElement: HTMLIFrameElement;
 	let player: any;
 	let videoId: string = '';
 	let isPlaying: boolean = false;
@@ -34,45 +33,65 @@
 	let timeUpdateInterval: ReturnType<typeof setInterval> | null = null;
 	let seekInProgress = false;
 
-	// Load YouTube IFrame API
-	function loadYouTubeAPI(): Promise<void> {
-		return new Promise((resolve) => {
-			if (window.YT && window.YT.Player) {
-				resolve();
-				return;
-			}
-
-			const tag = document.createElement('script');
-			tag.src = 'https://www.youtube.com/iframe_api';
-			const firstScriptTag = document.getElementsByTagName('script')[0];
-			if (!firstScriptTag.parentNode) return;
-			firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-			window.onYouTubeIframeAPIReady = () => {
-				resolve();
-			};
-		});
+	export function getPlayer() {
+		if (player) {
+			return player;
+		}
 	}
+	// Load YouTube IFrame API
+	// function loadYouTubeAPI(): Promise<void> {
+	// 	return new Promise((resolve) => {
+	// 		console.log('loading yt api for podcast player');
+	// 		if (window.YT && window.YT.Player) {
+	// 			resolve();
+	// 			return;
+	// 		}
+
+	// 		const tag = document.createElement('script');
+	// 		tag.src = 'https://www.youtube.com/iframe_api';
+
+	// 		// Wait for DOM to be ready
+	// 		if (document.readyState === 'loading') {
+	// 			document.addEventListener('DOMContentLoaded', () => {
+	// 				const firstScriptTag = document.getElementsByTagName('script')[0];
+	// 				firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
+	// 			});
+	// 		} else {
+	// 			const firstScriptTag = document.getElementsByTagName('script')[0];
+	// 			firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
+	// 		}
+
+	// 		window.onYouTubeIframeAPIReady = () => {
+	// 			resolve();
+	// 		};
+	// 	});
+	// }
 
 	// Initialize YouTube player
-	async function initPlayer() {
+	async function initPlayer(vidID: string) {
 		try {
-			await loadYouTubeAPI();
-			// console.log('YouTube API loaded');
+			if (!vidID) return;
+			isLoading = true;
+			// await loadYouTubeAPI();
 
 			if (player) {
 				player.destroy();
 			}
 
-			// console.log('Creating player with videoId:', videoId);
+			const playerContainer = document.getElementById('youtube-player');
+			if (!playerContainer) {
+				console.error('Player container not found');
+				return;
+			}
+
 			player = new window.YT.Player('youtube-player', {
-				videoId,
+				videoId: vidID,
 				playerVars: {
 					autoplay: autoplay ? 1 : 0,
 					controls: 1,
 					modestbranding: 1,
-					rel: 0,
-					vq: videoQuality === 'tiny' ? 'small' : 'hd720'
+					rel: 0
+					// vq: videoQuality === 'tiny' ? 'small' : 'hd720'
 				},
 				events: {
 					onReady: onPlayerReady,
@@ -156,18 +175,18 @@
 		}
 	}
 
-	function handleSeek(event: any) {
-		seekInProgress = true;
-		const newTime = event.detail;
-		if (player && player.seekTo) {
-			player.seekTo(newTime, true);
-			saveCurrentTime(newTime);
-			lastSavedTime = newTime;
-		}
-		setTimeout(() => {
-			seekInProgress = false;
-		}, 1000);
-	}
+	// function handleSeek(event: any) {
+	// 	seekInProgress = true;
+	// 	const newTime = event.detail;
+	// 	if (player && player.seekTo) {
+	// 		player.seekTo(newTime, true);
+	// 		saveCurrentTime(newTime);
+	// 		lastSavedTime = newTime;
+	// 	}
+	// 	setTimeout(() => {
+	// 		seekInProgress = false;
+	// 	}, 1000);
+	// }
 
 	async function handleUrlChange() {
 		if (videoInput && isValidYoutubeUrl(videoInput)) {
@@ -180,49 +199,15 @@
 			currentTime = 0;
 			lastSavedTime = 0;
 			localStorage.setItem('zimmer_current_time', '0');
-
+			const vid = extractVideoId(url);
+			await initPlayer(vid);
 			// Reinitialize the player with the new URL
-			await initPlayer();
+
 			videoInput = '';
 		} else {
 			dispatch('error', { type: 'invalid_url', error: 'Invalid YouTube URL' });
 		}
 	}
-
-	// @ts-ignore
-	onMount(async () => {
-		isLoading = true;
-		if (url && isValidYoutubeUrl(url)) {
-			videoId = extractVideoId(url);
-			await initPlayer();
-			startTimeTracking();
-		} else {
-			isLoading = false;
-		}
-
-		return () => {
-			if (saveTimeInterval) {
-				clearInterval(saveTimeInterval);
-			}
-			if (player) {
-				try {
-					// Save final position before unmounting
-					currentTime = Math.floor(player.getCurrentTime());
-					localStorage.setItem('zimmer_current_time', currentTime.toString());
-				} catch (error) {
-					console.error('Error saving final position:', error);
-				}
-			}
-		};
-	});
-
-	onDestroy(() => {
-		stopTimeTracking();
-		if (player) {
-			saveCurrentTime(Math.floor(player.getCurrentTime()));
-			player.destroy();
-		}
-	});
 
 	// Player control functions with type definitions
 	function play(): void {
@@ -257,13 +242,50 @@
 		}
 	}
 
+	// @ts-ignore
+	onMount(async () => {
+		console.log('mounting ');
+		isLoading = true;
+		if (url && isValidYoutubeUrl(url)) {
+			const vid = extractVideoId(url);
+			videoId = vid;
+			await initPlayer(vid);
+			startTimeTracking();
+		} else {
+			isLoading = false;
+		}
+
+		return () => {
+			if (saveTimeInterval) {
+				clearInterval(saveTimeInterval);
+			}
+			if (player) {
+				try {
+					// Save final position before unmounting
+					currentTime = Math.floor(player.getCurrentTime());
+					localStorage.setItem('zimmer_current_time', currentTime.toString());
+				} catch (error) {
+					console.error('Error saving final position:', error);
+				}
+			}
+		};
+	});
+
+	onDestroy(() => {
+		stopTimeTracking();
+		if (player) {
+			saveCurrentTime(Math.floor(player.getCurrentTime()));
+			player.destroy();
+		}
+	});
+
 	// Reactive statement to handle URL changes and volume updates
 	$: {
 		if (url && isValidYoutubeUrl(url)) {
 			const newVideoId = extractVideoId(url);
 			if (newVideoId !== videoId) {
 				videoId = newVideoId;
-				initPlayer();
+				initPlayer(newVideoId);
 			}
 		}
 
@@ -274,21 +296,21 @@
 	}
 </script>
 
-<div class="video-container">
+<div class="video-container mt-2">
 	<div class="space-y-4">
 		<div class="video-input-wrapper">
 			<form class="flex gap-2">
 				<Input
 					type="text"
 					bind:value={videoInput}
-					placeholder="Enter YouTube URL"
+					placeholder="YouTube video url"
 					class="flex-grow"
 				/>
 				<Button onclick={handleUrlChange} variant="default" size="sm">Change Podcast</Button>
 			</form>
 		</div>
 
-		{#if videoId}
+		{#if url}
 			<div class="video-wrapper relative bg-black/5 rounded-lg overflow-hidden">
 				{#if isLoading}
 					<div class="loading-overlay flex items-center justify-center">
@@ -301,16 +323,27 @@
 			<div class="video-controls-wrapper">
 				<div class="video-controls">
 					<div class="playback-controls">
-						<div class="speed-controls">
-							{#each [0.5, 1, 1.5, 2] as speed}
-								<Button
-									onclick={() => setPlaybackSpeed(speed)}
-									variant={playbackRate === speed ? 'default' : 'outline'}
-									size="sm"
-								>
-									{speed}x
+						<div class="flex justify-between items-center">
+							<div class="speed-controls">
+								{#each [0.5, 1, 1.5, 2] as speed}
+									<Button
+										onclick={() => setPlaybackSpeed(speed)}
+										variant={playbackRate === speed ? 'default' : 'outline'}
+										size="sm"
+									>
+										{speed}x
+									</Button>
+								{/each}
+							</div>
+							<div class="playlist-controls flex mr-1 justify-end">
+								<Button onclick={togglePlayPause} variant="outline" size="icon">
+									{#if isPlaying}
+										<Pause class="h-4 w-4" />
+									{:else}
+										<Play class="h-4 w-4" />
+									{/if}
 								</Button>
-							{/each}
+							</div>
 						</div>
 						<!-- 
 						<Button onclick={toggleLowQuality} variant="outline" size="sm">
@@ -409,6 +442,8 @@
 		justify-content: center;
 		align-items: center;
 		gap: 0.5rem;
+		flex-direction: column;
+		align-items: stretch;
 	}
 
 	.speed-controls {

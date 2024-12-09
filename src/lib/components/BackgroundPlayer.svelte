@@ -1,12 +1,21 @@
 <script lang="ts">
-	import { createEventDispatcher, onMount, onDestroy } from 'svelte';
-	import { extractVideoId, isValidYoutubeUrl } from '$lib/utils/youtube';
+	import { createEventDispatcher, onDestroy, onMount } from 'svelte';
+	import { extractVideoId, parseYouTubeUrl } from '$lib/utils/youtube';
 	import { Input } from '$lib/components/ui/input';
 	import { Button } from '$lib/components/ui/button';
 	import { Slider } from '$lib/components/ui/slider';
 	import { Label } from '$lib/components/ui/label';
 	import { Card, CardHeader, CardTitle, CardDescription } from '$lib/components/ui/card';
-	import { Check, Music } from 'lucide-svelte';
+	import {
+		CassetteTape,
+		Check,
+		ChevronLeft,
+		ChevronRight,
+		ListMusic,
+		Music,
+		Pause,
+		Play
+	} from 'lucide-svelte';
 	import { Trash2 } from 'lucide-svelte';
 	import AddBackgroundMusicDialog from './AddBackgroundMusicDialog.svelte';
 
@@ -14,6 +23,7 @@
 	interface BackgroundMusic {
 		title: string;
 		url: string;
+		isPlaylist?: boolean;
 	}
 
 	// Props with type definitions
@@ -28,116 +38,84 @@
 	}>();
 
 	// Component state with type definitions
-	let iframeElement: HTMLIFrameElement;
+	let player: any;
+
 	let videoId: string = '';
+	let playlistId: string = '';
 	let isPlaying: boolean = false;
 	let videoInput: string = '';
 	let playbackRate: number = 1;
 	let volume: [number] = [50]; // Shadcn Slider uses array
-	let videoQuality: 'default' | 'small' | 'tiny' = 'default';
+	let videoQuality: 'tiny' | 'default' = 'tiny';
 	let customTitle: string = '';
 	let customUrl: string = '';
+	let selectedMusic: BackgroundMusic | null = null;
+	let isLoading: boolean = false;
+	let isPlaylistMode: boolean = false;
+
+	export function getBgPlayer() {
+		if (player) {
+			return player;
+		}
+	}
 
 	// Get stored music from localStorage or use default
 	const getStoredMusic = (): BackgroundMusic[] => {
-		const stored = localStorage.getItem('zimmer_background_music');
-		return stored
-			? JSON.parse(stored)
+		const storedMusic = localStorage.getItem('zimmer_background_music');
+		return storedMusic
+			? JSON.parse(storedMusic)
 			: [
 					{
 						title: 'Beethoven',
-						url: 'https://www.youtube.com/watch?v=W-fFHeTX70Q'
+						url: 'https://www.youtube.com/watch?v=W-fFHeTX70Q',
+						isPlaylist: false
 					},
 					{
 						title: 'Hans Zimmer',
-						url: 'https://www.youtube.com/watch?v=IqiTJK_uzUY'
+						url: 'https://www.youtube.com/watch?v=IqiTJK_uzUY',
+						isPlaylist: false
 					},
 					{
-						title: 'Mozart',
-						url: 'https://www.youtube.com/watch?v=Rb0UmrCXxVA'
+						title: 'Ethio Jazz',
+						url: 'https://www.youtube.com/watch?v=GCXGjvrYcxc&list=PLT0sa3LsER_DuoCXhPlnx4lG5z77idYvR&index=9',
+						isPlaylist: true
 					},
 					{
 						title: 'Lofi Girl',
-						url: 'https://www.youtube.com/watch?v=jfKfPfyJRdk'
+						url: 'https://www.youtube.com/watch?v=jfKfPfyJRdk',
+						isPlaylist: false
 					},
 					{
 						title: 'Groovy Jazz',
-						url: 'https://www.youtube.com/watch?v=vDVSGA5b05U'
+						url: 'https://www.youtube.com/watch?v=vDVSGA5b05U',
+						isPlaylist: false
 					},
 					{
 						title: 'Mulatu Astatke',
-						url: 'https://www.youtube.com/watch?v=5y3JU5ZMg5Y'
+						url: 'https://www.youtube.com/watch?v=5y3JU5ZMg5Y',
+						isPlaylist: false
 					}
 				];
 	};
 
 	let backgroundMusicList = getStoredMusic();
 
-	// Save music list to localStorage
-	const saveToLocalStorage = () => {
-		localStorage.setItem('zimmer_background_music', JSON.stringify(backgroundMusicList));
-	};
-
-	// Add new background music
-	const addBackgroundMusic = () => {
-		if (!customTitle.trim() || !isValidYoutubeUrl(customUrl)) {
-			alert('Please enter a valid title and YouTube URL');
-			return;
-		}
-
-		backgroundMusicList = [...backgroundMusicList, { title: customTitle, url: customUrl }];
-		saveToLocalStorage();
-		customTitle = '';
-		customUrl = '';
-	};
-
-	// Delete background music
-	const deleteBackgroundMusic = (index: number) => {
-		backgroundMusicList = backgroundMusicList.filter((_, i) => i !== index);
-		saveToLocalStorage();
-		if (selectedMusic && !backgroundMusicList.find((music) => music.url === selectedMusic?.url)) {
-			selectedMusic = null;
-			url = '';
-			videoId = '';
-		}
-	};
-
-	let selectedMusic: BackgroundMusic | null =
-		backgroundMusicList.find((option) => option.url === url) || null;
-
-	$: {
-		if (url && isValidYoutubeUrl(url)) {
-			videoId = extractVideoId(url);
-		}
-
-		// Update volume when volume changes
-		if (iframeElement?.contentWindow) {
-			iframeElement.contentWindow.postMessage(
-				JSON.stringify({ event: 'command', func: 'setVolume', args: [volume[0]] }),
-				'*'
-			);
+	function setPlaybackSpeed(speed: number): void {
+		if (player) {
+			player.setPlaybackRate(speed);
+			playbackRate = speed;
 		}
 	}
 
 	function play(): void {
-		if (iframeElement?.contentWindow) {
-			iframeElement.contentWindow.postMessage(
-				JSON.stringify({ event: 'command', func: 'playVideo', args: [] }),
-				'*'
-			);
-			isPlaying = true;
-			dispatch('playing', { type: 'background' });
+		if (player) {
+			player.playVideo();
 		}
 	}
 
 	function pause(): void {
-		if (iframeElement?.contentWindow) {
-			iframeElement.contentWindow.postMessage(
-				JSON.stringify({ event: 'command', func: 'pauseVideo', args: [] }),
-				'*'
-			);
-			isPlaying = false;
-			dispatch('pause', { type: 'background' });
+		if (player) {
+			player.pauseVideo();
 		}
 	}
 
@@ -145,77 +123,300 @@
 		isPlaying ? pause() : play();
 	}
 
-	function changeVideo(): void {
-		if (isValidYoutubeUrl(videoInput)) {
-			localStorage.setItem('zimmer_bg_url', videoInput);
-			url = videoInput;
+	function handleAddMusic(event: CustomEvent<BackgroundMusic>) {
+		const newMusic = event.detail;
+		backgroundMusicList = [...backgroundMusicList, newMusic];
+		localStorage.setItem('zimmer_background_music', JSON.stringify(backgroundMusicList));
+	}
+
+	async function initializePlaylistPlayer(playlistId: string) {
+		try {
+			if (!playlistId) return;
+
+			isLoading = true;
+			// await loadYouTubeAPI();
+
+			if (player) {
+				player.destroy();
+			}
+
+			const playerContainer = document.getElementById('background-player');
+			if (!playerContainer) {
+				console.error('Player container not found');
+				return;
+			}
+
+			player = new window.YT.Player('background-player', {
+				height: '0',
+				width: '0',
+				playerVars: {
+					listType: 'playlist',
+					list: playlistId,
+					autoplay: autoplay ? 1 : 0,
+					controls: 1,
+					disablekb: 1,
+					enablejsapi: 1,
+					fs: 0,
+					modestbranding: 1,
+					playsinline: 1,
+					rel: 0
+				},
+				events: {
+					onReady: handlePlayerReady,
+					onStateChange: handlePlayerStateChange,
+					onError: handlePlayerError
+				}
+			});
+		} catch (error) {
+			console.error('Error initializing playlist player:', error);
+		} finally {
+			isLoading = false;
+		}
+	}
+
+	async function initializePlayer(videoId: string) {
+		try {
+			if (!videoId) return;
+
+			isLoading = true;
+			// await loadYouTubeAPI();
+
+			if (player) {
+				player.destroy();
+			}
+
+			const playerContainer = document.getElementById('background-player');
+			if (!playerContainer) {
+				console.error('Player container not found');
+				return;
+			}
+
+			player = new window.YT.Player('background-player', {
+				height: '0',
+				width: '0',
+				videoId: videoId,
+				playerVars: {
+					autoplay: autoplay ? 1 : 0,
+					controls: 1,
+					disablekb: 1,
+					enablejsapi: 1,
+					fs: 0,
+					modestbranding: 1,
+					playsinline: 1,
+					rel: 0
+				},
+				events: {
+					onReady: handlePlayerReady,
+					onStateChange: handlePlayerStateChange,
+					onError: handlePlayerError
+				}
+			});
+		} catch (error) {
+			console.error('Error initializing player:', error);
+			// dispatch('error', { type: 'initialization', error });
+		} finally {
+			isLoading = false;
+		}
+	}
+
+	// if the music is said not to be stored as a playlist remove the videoId from the url in the dialog
+
+	async function handleUrlChange(newUrl: string) {
+		if (!newUrl) return;
+		const urlInfo = parseYouTubeUrl(newUrl);
+		if (urlInfo.isPlaylist) {
+			console.log('bg music is playlist ');
+			isPlaylistMode = true;
+			await initializePlaylistPlayer(urlInfo.playlistId);
+			localStorage.setItem('zimmer_bg_url', newUrl);
+
 			videoInput = '';
+			return;
 		} else {
-			alert('Please enter a valid YouTube URL');
+			console.log('bg music is not playlist');
+			isPlaylistMode = false;
+			await initializePlayer(urlInfo.videoId);
+			localStorage.setItem('zimmer_bg_url', newUrl);
 		}
 	}
 
-	function setPlaybackSpeed(speed: number): void {
-		if (iframeElement?.contentWindow) {
-			iframeElement.contentWindow.postMessage(
-				JSON.stringify({ event: 'command', func: 'setPlaybackRate', args: [speed] }),
-				'*'
-			);
-			playbackRate = speed;
+	function deleteBackgroundMusic(music: BackgroundMusic) {
+		backgroundMusicList = backgroundMusicList.filter((m) => m !== music);
+		localStorage.setItem('zimmer_background_music', JSON.stringify(backgroundMusicList));
+	}
+
+	function handleSelectMusic(music: BackgroundMusic) {
+		selectedMusic = music;
+		console.log(music);
+		handleUrlChange(music.url);
+	}
+
+	// Load YouTube IFrame API
+	// function loadYouTubeAPI(): Promise<void> {
+	// 	return new Promise((resolve) => {
+	// 		if (window.YT && window.YT.Player) {
+	// 			resolve();
+	// 			return;
+	// 		}
+
+	// 		const tag = document.createElement('script');
+	// 		tag.src = 'https://www.youtube.com/iframe_api';
+
+	// 		if (document.readyState === 'loading') {
+	// 			document.addEventListener('DOMContentLoaded', () => {
+	// 				const firstScriptTag = document.getElementsByTagName('script')[0];
+	// 				firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
+	// 			});
+	// 		} else {
+	// 			const firstScriptTag = document.getElementsByTagName('script')[0];
+	// 			firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
+	// 		}
+
+	// 		window.onYouTubeIframeAPIReady = () => {
+	// 			resolve();
+	// 		};
+	// 	});
+	// }
+
+	function handlePlayerReady(event: any) {
+		console.log('YouTube player ready');
+		// console.log(event);
+	}
+
+	function handlePlayerStateChange(event: any) {
+		switch (event.data) {
+			case window.YT.PlayerState.PLAYING:
+				isPlaying = true;
+				dispatch('playing', { type: 'podcast' });
+				break;
+			case window.YT.PlayerState.PAUSED:
+				isPlaying = false;
+				dispatch('pause', { type: 'podcast' });
+				break;
+			case window.YT.PlayerState.ENDED:
+				isPlaying = false;
+				break;
 		}
 	}
 
-	function toggleLowQuality(): void {
-		videoQuality = videoQuality === 'tiny' ? 'default' : 'tiny';
+	function handlePlayerError(event: any) {
+		console.error('YouTube player error:', event);
 	}
 
-	// Listen for changes in localStorage
+	function playNextInPlaylist() {
+		if (player && isPlaylistMode) {
+			player.nextVideo();
+		}
+	}
+
+	function playPreviousInPlaylist() {
+		if (player && isPlaylistMode) {
+			player.previousVideo();
+		}
+	}
+
+	onMount(async () => {
+		isLoading = true;
+		if (url) {
+			// console.log('initializing the url player');
+			await handleUrlChange(url);
+			isLoading = false;
+		} else {
+			isLoading = false;
+		}
+	});
+
+	onDestroy(() => {
+		if (player) {
+			player.destroy();
+		}
+	});
+
+	$: {
+		if (url && parseYouTubeUrl(url).videoId) {
+			const newVideoId = parseYouTubeUrl(url).videoId;
+			if (newVideoId !== videoId) {
+				videoId = newVideoId;
+				initializePlayer(videoId);
+			}
+		}
+
+		// Update volume when volume changes
+		if (player?.setVolume) {
+			player.setVolume(volume[0]);
+		}
+	}
 </script>
 
 <div class="video-container">
-	<div class="mb-4">
-		<div class="flex flex-col gap-4">
-			<!-- Change background form -->
-			<form class="flex gap-2">
-				<Input
-					type="text"
-					bind:value={videoInput}
-					placeholder="Enter YouTube URL"
-					class="flex-grow"
-				/>
-				<Button onclick={changeVideo} variant="default" size="sm">Change Background</Button>
-			</form>
-		</div>
+	<!-- <div class="mb-4"> -->
+	<div class="video-input-wrapper">
+		<form class="flex gap-2">
+			<Input
+				type="text"
+				bind:value={videoInput}
+				placeholder="YouTube video or playlist url"
+				class="flex-grow"
+			/>
+			<Button onclick={() => handleUrlChange(videoInput)} variant="default" size="sm"
+				>Change Bg</Button
+			>
+		</form>
 	</div>
+	<!-- </div> -->
+
 	{#if videoId}
-		<div class="video-wrapper">
-			<iframe
-				bind:this={iframeElement}
-				width="640"
-				height="360"
-				src="https://www.youtube.com/embed/{videoId}?enablejsapi=1&autoplay={autoplay
-					? 1
-					: 0}&controls=1&modestbranding=1&rel=0&vq={videoQuality === 'tiny' ? 'small' : 'hd720'}"
-				title="YouTube video player"
-				frameborder="0"
-				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-				allowfullscreen
-			></iframe>
+		<div class="video-wrapper mt-4 relative bg-black/5 rounded-lg overflow-hidden">
+			{#if isLoading}
+				<div class="loading-overlay flex items-center justify-center">
+					<div class="loading-spinner"></div>
+				</div>
+			{/if}
+			<div id="background-player" class="video w-full aspect-video"></div>
 		</div>
 
 		<div class="video-controls-wrapper mb-8 mt-4">
 			<div class="video-controls">
 				<div class="playback-controls">
-					<div class="speed-controls flex gap-2">
-						{#each [0.5, 1, 1.5, 2] as speed}
-							<Button
-								onclick={() => setPlaybackSpeed(speed)}
-								variant={playbackRate === speed ? 'default' : 'outline'}
-								size="sm"
-							>
-								{speed}x
-							</Button>
-						{/each}
+					<div class="flex justify-between items-center flex-col sm:flex-row">
+						<div class="speed-controls flex sm:mb-0 mb-3 gap-2">
+							{#each [0.5, 1, 1.5, 2] as speed}
+								<Button
+									onclick={() => setPlaybackSpeed(speed)}
+									variant={playbackRate === speed ? 'default' : 'outline'}
+									size="sm"
+								>
+									{speed}x
+								</Button>
+							{/each}
+						</div>
+						{#if isPlaylistMode}
+							<div class="playlist-controls flex gap-3 justify-end">
+								<Button onclick={() => playPreviousInPlaylist()} variant="outline" size="icon">
+									<ChevronLeft class="h-4 w-4" />
+								</Button>
+								<Button onclick={togglePlayPause} variant="outline" size="icon">
+									{#if isPlaying}
+										<Pause class="h-4 w-4" />
+									{:else}
+										<Play class="h-4 w-4" />
+									{/if}
+								</Button>
+								<Button onclick={() => playNextInPlaylist()} variant="outline" size="icon">
+									<ChevronRight class="h-4 w-4" />
+								</Button>
+							</div>
+						{:else}
+							<div class="playlist-controls flex gap-3 justify-end">
+								<Button onclick={togglePlayPause} variant="outline" size="icon">
+									{#if isPlaying}
+										<Pause class="h-4 w-4" />
+									{:else}
+										<Play class="h-4 w-4" />
+									{/if}
+								</Button>
+							</div>
+						{/if}
 					</div>
 				</div>
 
@@ -236,34 +437,34 @@
 			</p>
 		</div>
 
-		<div class="grid grid-cols-2 gap-4 mb-6">
-			{#each backgroundMusicList as option, index}
+		<div class="grid grid-cols-2 gap-4 mb-9">
+			{#each backgroundMusicList as option}
 				<Card
 					class="relative cursor-pointer hover:bg-accent transition-colors {selectedMusic?.url ===
 					option.url
 						? 'bg-accent'
 						: ''}"
-					onclick={() => {
-						selectedMusic = option;
-						url = option.url;
-						localStorage.setItem('zimmer_bg_url', option.url);
-					}}
+					onclick={() => handleSelectMusic(option)}
 				>
 					<CardHeader class="px-4 py-3">
 						<div class="flex items-start justify-between">
 							<div class="space-y-0.5">
 								<CardTitle class="">{option.title}</CardTitle>
-								<CardDescription class="mt-1"
-									><Music width={10} class="h-3 mt-1 w-3" /></CardDescription
-								>
+								<CardDescription class="mt-1">
+									{#if parseYouTubeUrl(option.url).isPlaylist}
+										<ListMusic width={10} class="h-3 mt-1 w-3" />
+									{:else}
+										<Music width={10} class="h-3 mt-1 w-3" />
+									{/if}
+								</CardDescription>
 							</div>
 							<div class="flex flex-col gap-2">
 								<!-- {#if selectedMusic?.url === option.url}
-									<Check width={12} class="h-4 w-4  text-primary" />
-								{/if} -->
+								<Check width={12} class="h-4 w-4  text-primary" />
+							{/if} -->
 								<button
 									class="text-destructive hover:text-destructive/80 transition-colors"
-									on:click|stopPropagation={() => deleteBackgroundMusic(index)}
+									on:click|stopPropagation={() => deleteBackgroundMusic(option)}
 								>
 									<Trash2 width={12} class="h-4 w-4" />
 								</button>
@@ -274,13 +475,7 @@
 			{/each}
 		</div>
 
-		<AddBackgroundMusicDialog
-			on:addMusic={(event) => {
-				const newMusic = event.detail;
-				backgroundMusicList = [...backgroundMusicList, newMusic];
-				saveToLocalStorage();
-			}}
-		/>
+		<AddBackgroundMusicDialog on:addMusic={(event) => handleAddMusic(event)} />
 	</div>
 </div>
 
@@ -299,7 +494,7 @@
 		overflow: hidden;
 	}
 
-	iframe {
+	.video {
 		width: 100%;
 		height: 100%;
 		object-fit: contain;
@@ -322,6 +517,8 @@
 		justify-content: center;
 		align-items: center;
 		gap: 0.5rem;
+		flex-direction: column;
+		align-items: stretch;
 	}
 
 	.speed-controls {
@@ -336,6 +533,11 @@
 		align-items: center;
 		gap: 0.5rem;
 		width: 100%;
+	}
+
+	.playlist-controls {
+		display: flex;
+		gap: 0.5rem;
 	}
 
 	@media (max-width: 640px) {

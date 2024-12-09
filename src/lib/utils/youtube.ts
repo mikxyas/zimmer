@@ -48,7 +48,30 @@ export function extractVideoId(url: string): string {
     return match ? match[1] : '';
 }
 
+export function extractPlaylistId(url: string): string {
+    const match = url.match(/[&?]list=([^&]+)/i);
+    return match ? match[1] : '';
+}
+
+export function isPlaylist(url: string): boolean {
+    return !!extractPlaylistId(url);
+}
+
 export function isValidYoutubeUrl(url: string): boolean {
     const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
     return youtubeRegex.test(url);
+}
+
+export interface YouTubeUrlInfo {
+    videoId: string;
+    playlistId: string;
+    isPlaylist: boolean;
+}
+
+export function parseYouTubeUrl(url: string): YouTubeUrlInfo {
+    return {
+        videoId: extractVideoId(url),
+        playlistId: extractPlaylistId(url),
+        isPlaylist: isPlaylist(url)
+    };
 }
