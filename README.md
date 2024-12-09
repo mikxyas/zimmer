@@ -11,7 +11,7 @@ Zimmer is a web app (PWA) that enhances your podcast listening experience by all
 
 ## Screenshots
 
-![Main Interface](screenshots/screenshot-2.jpg)
+![Main Interface](screenshots/screenshot-1.jpg)
 
 ![Player Controls](screenshots/screenshot-2.jpg)
 
