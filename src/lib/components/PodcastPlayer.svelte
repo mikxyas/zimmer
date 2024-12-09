@@ -307,7 +307,7 @@
 					class="flex-grow"
 				/>
 				<Button onclick={handleUrlChange} disabled={videoInput === ''} variant="default" size="sm"
-					>Change Podcast</Button
+					>Change</Button
 				>
 			</form>
 		</div>

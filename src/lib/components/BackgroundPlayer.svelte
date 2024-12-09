@@ -362,7 +362,7 @@
 				onclick={() => handleUrlChange(videoInput)}
 				disabled={videoInput === ''}
 				variant="default"
-				size="sm">Change Bg</Button
+				size="sm">Change</Button
 			>
 		</form>
 	</div>
