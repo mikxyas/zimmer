@@ -24,6 +24,10 @@
 			// Double tap within 300ms
 			doubleTapCount++;
 			if (doubleTapCount >= 2) {
+				// Exit fullscreen before calling onUnlock
+				if (document.fullscreenElement) {
+					document.exitFullscreen();
+				}
 				onUnlock();
 			}
 		} else {

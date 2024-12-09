@@ -65,9 +65,7 @@
 
 <Dialog.Root bind:open onOpenChange={handleOpenChange}>
 	<Dialog.Trigger>
-		<Button variant="outline" class="self-center mb-10"
-			>Add Background Music <Plus class="ml-2" /></Button
-		>
+		<Button variant="outline" class=" w-full">Add Background Music <Plus class="ml-2" /></Button>
 	</Dialog.Trigger>
 	<Dialog.Content class="sm:max-w-[425px] ">
 		<Dialog.Header>

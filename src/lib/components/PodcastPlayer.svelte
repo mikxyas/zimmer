@@ -306,7 +306,9 @@
 					placeholder="YouTube video url"
 					class="flex-grow"
 				/>
-				<Button onclick={handleUrlChange} variant="default" size="sm">Change Podcast</Button>
+				<Button onclick={handleUrlChange} disabled={videoInput === ''} variant="default" size="sm"
+					>Change Podcast</Button
+				>
 			</form>
 		</div>
 

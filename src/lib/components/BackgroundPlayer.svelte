@@ -358,8 +358,11 @@
 				placeholder="YouTube video or playlist url"
 				class="flex-grow"
 			/>
-			<Button onclick={() => handleUrlChange(videoInput)} variant="default" size="sm"
-				>Change Bg</Button
+			<Button
+				onclick={() => handleUrlChange(videoInput)}
+				disabled={videoInput === ''}
+				variant="default"
+				size="sm">Change Bg</Button
 			>
 		</form>
 	</div>
@@ -429,7 +432,7 @@
 		</div>
 	{/if}
 
-	<div class="music-selection-container">
+	<div class="music-selection-container mb-10">
 		<div class="section-header mb-4">
 			<h3 class="text-lg font-medium">Background Music</h3>
 			<p class="text-sm text-muted-foreground">
@@ -437,7 +440,7 @@
 			</p>
 		</div>
 
-		<div class="grid grid-cols-2 gap-4 mb-9">
+		<div class="grid grid-cols-2 gap-4 mb-4">
 			{#each backgroundMusicList as option}
 				<Card
 					class="relative cursor-pointer hover:bg-accent transition-colors {selectedMusic?.url ===

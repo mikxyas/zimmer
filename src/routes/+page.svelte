@@ -182,7 +182,7 @@
 	}
 </script>
 
-<ScrollArea class={`h-[100vh] w-full px-4 ${showForm ? 'pt-20' : 'pt-16'}`}>
+<ScrollArea class={`h-[100vh] w-full px-4 ${showForm ? 'pt-20' : 'pt-16'} `}>
 	<div class="mx-auto px-4 py-2 max-w-md bg-background text-foreground">
 		<Navbar onLock={handleLock} onReset={handleReset} showPlayerControls={!showForm} />
 
@@ -223,8 +223,8 @@
 					</div>
 				</div>
 
-				<div class="space-y-4 md:px-2 lg:px-10">
-					<div class="space-y-4">
+				<div class="space-y-4 md:px-2 lg:px-10 mb-10">
+					<div class="space-y-2">
 						<div class="relative">
 							<div class="absolute inset-0 flex items-center">
 								<span class="w-full border-t"></span>
