@@ -7,7 +7,6 @@
 	"display_override": ["fullscreen", "standalone"],
 	"background_color": "#000000",
 	"theme_color": "#000000",
-	"scope": "/",
 	"orientation": "portrait",
 	"lang": "en-US",
 	"dir": "ltr",
