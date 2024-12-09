@@ -1,22 +1,21 @@
 # Zimmer 🎧
 
-Zimmer is an elegant web application that enhances your podcast listening experience by allowing you to play ambient background music alongside your favorite podcasts. Perfect for creating the right atmosphere while listening to your favorite content.
+Zimmer is a web app (PWA) that enhances your podcast listening experience by allowing you to play ambient background music alongside your favorite podcasts. Perfect for creating the right atmosphere while listening to your favorite content.
 
 ## Features
 
 - 💾 Auto-save functionality for your last session
 - 🎨 Clean, modern interface
+- 🔒 Lock screen
 - 📱 Responsive design for all devices
 
 ## Screenshots
 
-### Main Interface
+![Main Interface](screenshots/screenshot-2.jpg)
 
-![Main Interface](screenshots/screenshot1.png)
+![Player Controls](screenshots/screenshot-2.jpg)
 
-### Player Controls
-
-![Player Controls](screenshots/screenshot2.png)
+![Simulated Lock Screen](screenshots/screenshot-3.jpg)
 
 ## Technology Stack
 

@@ -42,17 +42,22 @@
 	],
 	"screenshots": [
 		{
-			"src": "/screenshots/desktop.png",
-			"sizes": "1903x920",
-			"type": "image/png",
-			"form_factor": "wide",
-			"label": "Desktop view of Zimmer"
+			"src": "/screenshots/screenshot-1.jpg",
+			"sizes": "1600x720",
+			"type": "image/jpg",
+			"label": "Front Page"
 		},
 		{
-			"src": "/screenshots/mobile.png",
+			"src": "/screenshots/screenshot-2.jpg",
+			"sizes": "1600x720",
+			"type": "image/jpg",
+			"label": "Listening Experience"
+		},
+		{
+			"src": "/screenshots/screenshot-3.jpg",
 			"sizes": "372x665",
 			"type": "image/png",
-			"label": "Mobile view of Zimmer"
+			"label": "Lock Screen Feature"
 		}
 	]
 }
